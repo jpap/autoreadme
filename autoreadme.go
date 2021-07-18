@@ -93,16 +93,17 @@ var (
 	Recursive     = flag.Bool("r", false, "Run in all subdirectories containing Go code")
 	PrintTemplate = flag.Bool("print-template", false, "write the built in template to stdout and exit")
 	Template      = flag.String("template", "", "specify a file to use as template, overrides built in template and README.md.template")
+	Title         = flag.String("title", "", "title of the README.md")
 	Defs          defFlag
 )
 
 type Doc struct {
-	Name, Import, Synopsis, Doc, Today string
-	RepoPath                           string //Import sans github.com
-	Bugs                               []string
-	Library, Command                   bool
-	Travis                             bool //if a .travis.yml file is statable
-	Example                            map[string]Example
+	Name, Import, Synopsis, Doc, Today, Title string
+	RepoPath                                  string //Import sans github.com
+	Bugs                                      []string
+	Library, Command                          bool
+	Travis                                    bool //if a .travis.yml file is statable
+	Example                                   map[string]Example
 }
 
 // Map returns the receiver as a map.
@@ -113,6 +114,7 @@ func (d Doc) Map() map[string]interface{} {
 		"Synopsis": d.Synopsis,
 		"Doc":      d.Doc,
 		"Today":    d.Today,
+		"Title":    d.Title,
 		"RepoPath": d.RepoPath,
 		"Bugs":     d.Bugs,
 		"Library":  d.Library,
@@ -234,6 +236,11 @@ func getDoc(dir string) (Doc, error) {
 	pathelms := strings.Split(ip, "/")[1:]
 	repo := path.Join(pathelms...)
 
+	title := *Title
+	if len(title) == 0 {
+		title = name
+	}
+
 	return Doc{
 		Name:     name,
 		Import:   ip,
@@ -241,6 +248,7 @@ func getDoc(dir string) (Doc, error) {
 		Doc:      fmtDoc(docs.Doc),
 		Example:  examples,
 		Today:    today(),
+		Title:    title,
 		RepoPath: repo,
 		Bugs:     bugs,
 		Library:  bi.Name != "main",
