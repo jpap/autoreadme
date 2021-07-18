@@ -345,7 +345,7 @@ func main() {
 	}
 
 	if *PrintTemplate {
-		fmt.Print(tmplraw)
+		fmt.Print(templateString)
 		return
 	}
 
