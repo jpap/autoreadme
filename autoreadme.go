@@ -215,7 +215,7 @@ func renderExample(ex *doc.Example) Example {
 
 	c := &bytes.Buffer{}
 	format.Node(c, token.NewFileSet(), ex.Code)
-	e.Code = fmt.Sprintf("Code:\n\n```\n%s\n```\n", c.String())
+	e.Code = fmt.Sprintf("Code:\n\n```go\n%s\n```\n", c.String())
 
 	if ex.Output != "" {
 		e.Output = fmt.Sprintf("Output:\n\n```\n%s\n```\n", ex.Output)
