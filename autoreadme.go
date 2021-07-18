@@ -27,7 +27,7 @@ var (
 	Force         = flag.Bool("f", false, "Run even if README.md exists, overwriting original")
 	Recursive     = flag.Bool("r", false, "Run in all subdirectories containing Go code")
 	PrintTemplate = flag.Bool("print-template", false, "write the built in template to stdout and exit")
-	Template      = flag.String("template", "", "specify a file to use as template, overrides built in template and README.md.template")
+	Template      = flag.String("template", "", "specify a file to use as template, overrides built in template and .README.template.md")
 	Title         = flag.String("title", "", "title of the README.md")
 	Defs          defFlag
 )
@@ -243,7 +243,7 @@ func getTemplate(dir string) (*template.Template, error) {
 		return cached, nil
 	}
 
-	bs, err := ioutil.ReadFile(filepath.Join(dir, "README.md.template"))
+	bs, err := ioutil.ReadFile(filepath.Join(dir, ".README.template.md"))
 	//local template file found, prefer
 	if err == nil {
 		return template.New("").Parse(string(bs))
