@@ -1,3 +1,14 @@
+// Copyright 2009 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE-golang file.
+
+// Godoc comment extraction and comment -> HTML formatting.
+//
+// Everything in this file was copied from the go/doc package as this is not
+// exported.
+//
+// It can be found in go/doc/comment.go.
+
 package main
 
 import (
@@ -5,11 +16,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 )
-
-// Everything in this file was copied from the go/doc package as this is not
-// exported.
-//
-// It can be found in go/doc/comment.go.
 
 func indentLen(s string) int {
 	i := 0

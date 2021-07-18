@@ -1,3 +1,6 @@
+// Copyright 2021 John Papandriopoulos. All rights reserved.
+// Use of this code is governed by a BSD-License found in the LICENSE file.
+
 package main
 
 import (

@@ -1,95 +1,101 @@
-# autoreadme
-Automatically generate a github README.md for your Go project.
 
-Download:
+# GoDoc README Markdown Generator
+
+# Install
+
 ```shell
-go get github.com/jimmyfrasche/autoreadme
+go install "go.jpap.org/godoc-readme-gen"
 ```
+# Overview
 
-If you do not have the go command on your system, you need to [Install Go](http://golang.org/doc/install) first
+Automatically generate a README.md for your Go project.
 
-* * *
-Automatically generate a github README.md for your Go project.
+This tool creates a github-formatted README.md using the same format as
+godoc.  It includes the package summary and generates badges for pkg.go.dev
+and travis-ci.
 
-autoreadme(1) creates a github-formatted README.md using the same format as godoc(1).
-It includes the package summary and generates badges for godoc.org for the complete
-documentation and for travis-ci, if there's a .travis.yml file in the directory.
-It also includes copy-pastable installation instructions using the go(1) tool.
+This is a fork of James Frasche's project found at
+https://github.com/jimmyfrasche/autoreadme.
 
-## HEURISTICS
-autoreadme(1) by default imports the Go code in the current directory, unless a directory is specified.
+## Heuristics
+Go code in the current directory is analyzed by default, using the template
+file `.README.template.md` in the same directory, or a default template
+otherwise.  The Markdown output is always written to `README.md`, which is
+never overwritten unless the `-f` flag is given.
 
-If the -template argument is not given, it tries to use the README.md.template file in the same
-directory. If no such file exists, the built in template is used. These rules apply to each
-directory visited when -r is specified to run autoreadme(1) recursively. If a README.md already
-exists, it fails unless -f is specified.
+A specific directory can be provided on the command line, and a custom
+template specified using the `-template` flag.
 
-## EXAMPLES
-To create a README.md for the directory a/b/c
+Multiple directories can be recursed automatically using the `-r` flag.
 
-```
-autoreadme a/b/c
-```
-
-To overwrite the README.md in the current directory
+## Examples
+Create a README.md for the directory a/b/c
 
 ```
-autoreadme -f
+godoc-readme-gen a/b/c
 ```
 
-To run in the current directory and all subdirectories that contain
-Go code
+Overwrite the README.md in the current directory
 
 ```
-autoreadme -r
+godoc-readme-gen -f
 ```
 
-Use the built in template as the basis for a custom template.
+Generate for the current directory and all subdirectories containing Go code
 
 ```
-autoreadme -print-template >README.md.template
+godoc-readme-gen -r
 ```
 
-To override both the default template and a local README.md.template
+Copy the built-in template to a file for the creation of a new template.
 
 ```
-autoreadme -template=path/to/readme.template
+godoc-readme-gen -print-template > .README.template.md
 ```
 
-## TEMPLATE VARIABLES
-If you wish to use your own template, These are the fields available to dot:
+Generate using a custom template.
 
 ```
-Name - The name of your packages.
+godoc-readme-gen -template path/to/readme.template
+```
 
-Doc - The package-level documentation of your package.
+## Template Variables
+The following variables are available in custom templates:
 
-Synopsis - The first sentence of .Doc.
+Name: Package name.
 
-Import - The import path of your package.
+`.Title` The -title flag value, or package name if not provided.
 
-RepoPath - The import path without the github.com/ prefix.
+`.Doc` Package-level documentation of your package.
 
-Bugs - a []string of all bugs as per godoc.
+`.Synopsis` The first sentence from the .Doc variable.
 
-Library - True if not a command.
+`.Import` The import path of your package.
 
-Command - True if a command.
+`.RepoPath` The import path without the first path component. For example,
+the import github.com/golang/go is represented as "golang/go".
 
-Today - The current date in YYYY.MM.DD format.
+`.Bugs` A []string of all bugs as per godoc.
 
-Travis - True if there is a .travis.yml file in the same directory
-	as your package.
+`.Command` True if a command.
 
-Example - a map[name]Example with all examples from the _test files. These
-	can be used to include selective examples into the README.
-	The Example{} struct has these fields:
-		Name - name of the example
-		Code - renders example code similar to godoc
-		Output - example output, if any
+`.Library` True if not a command.
+
+`.Today` The current date in YYYY.MM.DD format.
+
+`.Travis` True if there is a `.travis.yml` file in the same directory as your
+package.
+
+`.Example` a map of Example with all examples from `*_test.go` files. These
+can be used to include selective examples into the README.  The Example{}
+struct has these fields:
+
+```
+.Name    Name of the example
+.Code    Rendered example code similar to godoc
+.Output  Example output, if any
 ```
 
 
 
-* * *
-Automatically generated by [autoreadme](https://github.com/jimmyfrasche/autoreadme) on 2018.05.03
+
