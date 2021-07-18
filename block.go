@@ -6,8 +6,10 @@ import (
 	"unicode/utf8"
 )
 
-//everything in this file was copied from the go/doc package as this is not exported
-//It can be found in go/doc/comment.go
+// Everything in this file was copied from the go/doc package as this is not
+// exported.
+//
+// It can be found in go/doc/comment.go.
 
 func indentLen(s string) int {
 	i := 0
