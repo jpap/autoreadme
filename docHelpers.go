@@ -11,6 +11,8 @@ import (
 	"go/format"
 	"go/token"
 	"strings"
+
+	"github.com/alecthomas/chroma/lexers"
 )
 
 func packageDocString(pkg *doc.Package) string {
@@ -32,7 +34,14 @@ func packageDocString(pkg *doc.Package) string {
 			push(ls...)
 			nl()
 		case opPre:
-			push("```")
+			// Detect language... and hope the lexer name is the same as the lingust name.
+			// GitHub Markdown uses linguist: https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
+			code := strings.Join(ls, "\n") + "\n"
+			if lexer := lexers.Analyse(code); lexer != nil {
+				push("```" + strings.ToLower(lexer.Config().Name))
+			} else {
+				push("```")
+			}
 			nl()
 			push(ls...)
 			push("```")
