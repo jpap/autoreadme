@@ -10,26 +10,52 @@ import (
 	"go/doc"
 	"go/format"
 	"go/token"
+	"regexp"
 	"strings"
 
 	"github.com/alecthomas/chroma/lexers"
 )
 
+// A par is the start-end line numbers of a paragraph.
+type par struct {
+	Index int
+	Len   int
+}
+
+// A section is a list of paragraphs.
+type section []par
+
+var regexpNumberedItem = regexp.MustCompile(`^[0-9]+\.`)
+
 func packageDocString(pkg *doc.Package) string {
-	var acc []string
+	var lines []string
 	push := func(ss ...string) {
-		acc = append(acc, ss...)
+		lines = append(lines, ss...)
 	}
 	nl := func() {
 		push("\n")
 	}
+
+	// Map all of the paragraph lines, so that we can detect bullets and lists.
+	var sections []section  // All sections
+	var currSection section // The "current" section
+
+	endPar := func() {
+		sections = append(sections, currSection)
+		currSection = make(section, 0)
+	}
+
 	for _, b := range blocks(pkg.Doc) {
 		ls := b.lines
 		switch b.op {
 		case opPara:
+			p := par{len(lines), len(ls)}
+			currSection = append(currSection, p)
+
 			push(ls...)
 			nl()
 		case opHead:
+			endPar()
 			push("## ")
 			push(ls...)
 			nl()
@@ -64,7 +90,51 @@ func packageDocString(pkg *doc.Package) string {
 			nl()
 		}
 	}
-	return strings.Join(acc, "")
+	endPar()
+
+	// Detect and indent paragraphs within bullets/lists.  We do not support
+	// nested lists, because the GoDoc format is too ambiguous for that use-case,
+	// Unless numbering is given as 1.1, 1.1.1, 1.1.2, etc., which is quite
+	// complex, and non-standard for bulleted lists: *, *.*, *.*, *.*.*, etc.
+	//
+	// If we detect a "^[0-9]+\." or "* " paragraph prefix, then assume all of the
+	// subsequent paragraphs in the section are part of the same bullet/list,
+	// until we find another bullet/list item.
+	//
+	// The only ambiguity here is a regular paragraph following a bullet/list
+	// block, so consider a non-standard "section separator" paragraph of "...",
+	// which we will elide.
+	for _, sec := range sections {
+		indent := false
+		for _, par := range sec {
+			leadin := lines[par.Index]
+
+			switch {
+			case par.Len == 1 && leadin == "...\n":
+				// Found a section separator: remove it.
+				indent = false
+				lines[par.Index] = "\n"
+
+			case regexpNumberedItem.MatchString(leadin):
+				// Found a numbered list: indent subsequent pars.
+				indent = true
+
+			case strings.HasPrefix(leadin, "* "):
+				// Found a NEW bulleted list: indent subsequent pars.
+				indent = true
+
+			default:
+				if indent {
+					for i := 0; i < par.Len; i++ {
+						lines[par.Index+i] = "    " + lines[par.Index+i]
+					}
+				}
+			}
+
+		}
+	}
+
+	return strings.Join(lines, "")
 }
 
 func renderExample(ex *doc.Example) Example {

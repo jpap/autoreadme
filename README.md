@@ -34,6 +34,37 @@ To view the default template, pass the `-print-template` function to dump it
 to stdout.  You might redirect this output to a file so you may use it as the
 basis for creating your own custom template.
 
+## Lists and Bullets
+Paragraphs that start with the text "1. ", "2. ", etc. are automatically
+turned into lists by Markdown.  Paragraphs between list items are
+automatically indented so that they appear as part of the same list item.
+Similarly for bullets, that are paragraphs that start with the text "* ".
+
+We assume the list and/or bullets continue until the end of the text section
+(that is, until the next heading or end of document).  But sometimes you may
+wish to "terminate" a list/bullet before then: to do this, insert a pseudo
+heading "..." before the next paragraph.  The ellipses will not be inserted
+into the README file.
+
+The following example illustrates this concept:
+
+```
+// Example List
+//
+// 1. Apple
+//
+// An Apple a day keeps the doctor away.
+//
+// 2. Pear
+//
+// Not to be confused with "pair".
+//
+// ...
+//
+// This trailing paragraph is not indented, as it is not considered to be
+// part of the above list.
+```
+
 ## Automating README Generation
 To track changes in your godoc, and ensure that your README is always kept up
 to date, we recommend adding a `//go:generate` line to your Go package so
