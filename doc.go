@@ -79,7 +79,13 @@ func importPath(dir string) (string, error) {
 
 func NewDoc(dir string) (d Doc, err error) {
 	var pkg *packages.Package
-	pkg, err = loadPackage(dir, packages.NeedName|packages.NeedFiles|packages.NeedSyntax|packages.NeedTypes|packages.NeedDeps)
+	pkg, err = loadPackage(dir,
+		packages.NeedName|
+			packages.NeedFiles|
+			packages.NeedSyntax|
+			packages.NeedTypes|
+			packages.NeedDeps,
+	)
 	if err != nil {
 		return
 	}
@@ -93,9 +99,11 @@ func NewDoc(dir string) (d Doc, err error) {
 		Name:  pkg.Name,
 		Files: make(map[string]*ast.File),
 	}
-	filenames := append(pkg.GoFiles, pkg.CompiledGoFiles...)
 	for i, f := range pkg.Syntax {
-		astPkg.Files[filenames[i]] = f
+		// Filenames in *packages.Package are a pain... and they don't matter here,
+		// so let's make them up. ;-)
+		filename := fmt.Sprintf("file-%d.go", i)
+		astPkg.Files[filename] = f
 	}
 
 	// Parse package docs
