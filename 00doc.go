@@ -4,41 +4,69 @@
 
 // Automatically generate a Markdown README for your Go project.
 //
-// This tool creates a GitHub-flavored README.md using the same format as
-// godoc.  It includes the package summary and generates badges for pkg.go.dev
-// and travis-ci.
+// This tool creates a GitHub-flavored README.md using the same format as godoc.
+// It includes the package summary and generates badges for pkg.go.dev and
+// Travis CI.
 //
-// This is a fork of James Frasche's project found at
+// This is a fork of James Frasche's project, found at
 // https://github.com/jimmyfrasche/autoreadme.
 //
-// Heuristics
 //
-// Go code in the current directory is analyzed by default, using the template
-// file `.README.template.md` in the same directory, or a default template
-// otherwise.  The Markdown output is always written to `README.md`, which is
-// never overwritten unless the `-f` flag is given.
+// What It Does
 //
-// A specific directory can be provided on the command line, and a custom
-// template specified using the `-template` flag.
+// By default, `godoc-readme-gen` will read the Go package in the working
+// directory, and generate a `README.md` file.  If the README already exists, it
+// will not be overwritten without the `-f` flag.  You can specify the path to
+// the package directory as the final argument to the tool.
 //
-// Multiple directories can be recursed automatically using the `-r` flag.
+// A template for the README is specified by the `-template` flag, and by
+// default it looks for a file named `.README.template.md` in the package
+// directory.  If the default template is not found, or an alternate is not
+// provided, the default template is used.
+//
+// To view the default template, pass the `-print-template` function to dump it
+// to stdout.  You might redirect this output to a file so you may use it as the
+// basis for creating your own custom template.
+//
+//
+// Automating README Generation
+//
+// To track changes in your godoc, and ensure that your README is always kept up
+// to date, we recommend adding a `//go:generate` line to your Go package so
+// that you can easily re-generate the README via the `go generate` command-line
+// tool.
+//
+// If you have one or more sub-packages in your project, you can add similar
+// `//go:generate` lines to each, and then regenerate all of the READMEs by
+// running `go generate ./...` from the top-level directory.
+//
+// We recommend placing your high-level godoc comments in a separate project
+// file, for example `00doc.go` so that it appears at the top of a sorted file
+// listing, where you might then place your `//go:generate` line beneath the
+// `package` declaration like so:
+//
+//   // Package demo shows how you might structure a 00doc.go file.
+//   package demo // import "corp.example.com/demo"
+//
+//   // To install: `go install go.jpap.org/godoc-readme-gen`
+//   //
+//   //go:generate godoc-readme-gen -f -title "Demo Usage of godoc-read-me-gen"
+//
 //
 // Examples
 //
-// Create a README.md for the directory a/b/c
+// Create a README.md for the package in directory a/b/c:
 //  godoc-readme-gen a/b/c
 //
-// Overwrite the README.md in the current directory
+// Overwrite the README.md in the current directory:
 //  godoc-readme-gen -f
 //
-// Generate for the current directory and all subdirectories containing Go code
-//  godoc-readme-gen -r
-//
-// Copy the built-in template to a file for the creation of a new template.
+// Copy the built-in template to a file for the creation of a new template:
 //  godoc-readme-gen -print-template > .README.template.md
 //
-// Generate using a custom template.
-//  godoc-readme-gen -template path/to/readme.template
+// Generate using a custom template:
+//  godoc-readme-gen -template path/to/my/readme.template.md
+//
 //
 // Template Variables
 //

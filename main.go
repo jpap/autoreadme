@@ -7,25 +7,24 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
+const defaultTemplateFile = ".README.template.md"
+
 var (
-	Force         = flag.Bool("f", false, "Run even if README.md exists, overwriting original")
-	Recursive     = flag.Bool("r", false, "Run in all subdirectories containing Go code")
-	PrintTemplate = flag.Bool("print-template", false, "write the built in template to stdout and exit")
-	Template      = flag.String("template", "", "specify a file to use as template, overrides built in template and .README.template.md")
-	Title         = flag.String("title", "", "title of the README.md")
-	Defs          defFlag
+	flagForce         = flag.Bool("f", false, "Run even if README.md exists, overwriting original")
+	flagPrintTemplate = flag.Bool("print-template", false, "Print the built in template to stdout and exit")
+	flagTemplate      = flag.String("template", defaultTemplateFile, "Template to use, or builtin if does not exist")
+	flagTitle         = flag.String("title", "", "Title of the README.md")
+	flagDefs          defFlag
 )
 
 func getOrCreateReadmeFile(dir string) (*os.File, error) {
 	nm := filepath.Join(dir, "README.md")
-	if !*Force {
+	if !*flagForce {
 		_, err := os.Stat(nm)
 		if err == nil {
 			return nil, fmt.Errorf("README.md already exists at %s. Use -f to overwrite", dir)
@@ -36,127 +35,62 @@ func getOrCreateReadmeFile(dir string) (*os.File, error) {
 	return os.Create(nm)
 }
 
-// goDirList returns a list of directories that contain .go files from the
-// rootPath directory.
-func goDirList(rootPath string) (ds []string, err error) {
-	if !*Recursive {
-		// Do not recurse...
-		return []string{rootPath}, nil
-	}
-
-	var follow func(string) error
-	follow = func(dir string) error {
-		fis, err := ioutil.ReadDir(dir)
-		if err != nil {
-			return err
-		}
-
-		hasgo := false
-		for _, fi := range fis {
-			nm := fi.Name()
-			if fi.IsDir() {
-				if nm[0] != '.' {
-					if err := follow(nm); err != nil {
-						return err
-					}
-				}
-			} else if strings.HasSuffix(nm, ".go") {
-				hasgo = true
-			}
-		}
-		if hasgo {
-			ds = append(ds, dir)
-		}
-		return nil
-	}
-
-	if err = follow(rootPath); err != nil {
-		return nil, err
-	}
-
-	return ds, nil
-}
-
 func main() {
 	log.SetFlags(0)
 
-	flag.Var(&Defs, "def", "Template define having the form: name=value")
+	flag.Var(&flagDefs, "def", "Template define having the form: name=value")
 	flag.Usage = func() {
 		log.Printf("Usage of %s: %s [directory]", os.Args[0], os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.Parse()
 
-	if *PrintTemplate {
+	if *flagPrintTemplate {
 		fmt.Print(templateString)
 		return
 	}
 
-	rootPath := "."
+	dir := "."
 
 	if args := flag.Args(); len(args) > 1 {
 		log.Fatalln("Too many arguments: ", args[1:])
 		flag.Usage()
 	} else if len(args) == 1 {
-		rootPath = args[0]
+		dir = args[0]
 	}
 
-	rootPath, err := filepath.Abs(rootPath)
+	dir, err := filepath.Abs(dir)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	dirList, err := goDirList(rootPath)
+	doc, err := NewDoc(dir)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("Failed to load package in dir %q: %v\n", dir, err)
 	}
 
-	issuedWarning := false
-	emitWarning := func(dir string, err error) {
-		issuedWarning = true
-		log.Printf("Could not create README.md for %q: %v\n", dir, err)
+	f, err := getOrCreateReadmeFile(dir)
+	if err != nil {
+		log.Fatalf("Failed to create README.md for %q: %v\n", dir, err)
 	}
 
-	for _, dir := range dirList {
-		tmpl, err := getTemplate(dir)
-		if err != nil {
-			if *Template != "" && *Recursive {
-				//don't want to show same error message for all dirs so just bail now
-				log.Fatalln(err)
-			}
-			emitWarning(dir, err)
-			continue
-		}
-
-		doc, err := NewDoc(dir)
-		if err != nil {
-			emitWarning(dir, err)
-			continue
-		}
-
-		f, err := getOrCreateReadmeFile(dir)
-		if err != nil {
-			emitWarning(dir, err)
-			continue
-		}
-
-		// Convert the doc to a map, so we can add additional fields
-		docm := doc.Map()
-		for _, d := range Defs {
-			// Lowercase define
-			docm[d.Name] = d.Value
-			// Uppercase define
-			d = d.UpperClone()
-			docm[d.Name] = d.Value
-		}
-
-		// Execute the template
-		if err = tmpl.Execute(f, docm); err != nil {
-			emitWarning(dir, err)
-		}
+	// Convert the doc to a map, so we can add additional fields
+	docm := doc.Map()
+	for _, d := range flagDefs {
+		// Lowercase define
+		docm[d.Name] = d.Value
+		// Uppercase define
+		d = d.UpperClone()
+		docm[d.Name] = d.Value
 	}
 
-	if issuedWarning {
-		os.Exit(1)
+	// Execute the template
+	tmpl, err := getTemplate(dir)
+	if err != nil {
+		log.Fatalf("Failed to load template: %v\n", err)
+	}
+
+	if err = tmpl.Execute(f, docm); err != nil {
+		log.Fatalf("Failed to execute template: %v\n", err)
 	}
 }

@@ -141,8 +141,8 @@ func NewDoc(dir string) (d Doc, err error) {
 
 	d.Name = name
 	d.Title = name
-	if len(*Title) > 0 {
-		d.Title = *Title
+	if len(*flagTitle) > 0 {
+		d.Title = *flagTitle
 	}
 
 	if pkg.Name == "main" {

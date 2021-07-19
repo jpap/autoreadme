@@ -5,6 +5,9 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -56,35 +59,29 @@ func init() {
 	builtinTemplate = template.Must(template.New("").Parse(templateString))
 }
 
-// only read and parse specified template once if -template and -r specified
-var singletonTemplate *template.Template
-
 func getTemplate(dir string) (*template.Template, error) {
-	if *Template != "" {
-		if singletonTemplate != nil {
-			return singletonTemplate, nil
-		}
-		bs, err := ioutil.ReadFile(*Template)
-		if err != nil {
-			return nil, err
-		}
-		singletonTemplate, err = template.New("").Parse(string(bs))
-		if err != nil {
-			return nil, err
-		}
-		return singletonTemplate, nil
+	if len(*flagTemplate) == 0 {
+		// Use the built-in template
+		return builtinTemplate, nil
 	}
 
-	bs, err := ioutil.ReadFile(filepath.Join(dir, ".README.template.md"))
-	//local template file found, prefer
-	if err == nil {
-		return template.New("").Parse(string(bs))
+	path := *flagTemplate
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(dir, path)
 	}
-	//the file was found but something else happened
-	if !os.IsNotExist(err) {
+
+	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+		// File does not exist.  If it's the default name, use the built-in
+		// template, otherwise return an error.
+		if *flagTemplate == defaultTemplateFile {
+			return builtinTemplate, nil
+		}
+		return nil, fmt.Errorf("failed to open template file: %s", *flagTemplate)
+	}
+
+	bs, err := ioutil.ReadFile(path)
+	if err != nil {
 		return nil, err
 	}
-
-	//the file was not found and no template specified, so use default
-	return builtinTemplate, nil
+	return template.New("README").Parse(string(bs))
 }
