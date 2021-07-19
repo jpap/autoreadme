@@ -34,14 +34,29 @@ func packageDocString(pkg *doc.Package) string {
 			push(ls...)
 			nl()
 		case opPre:
-			// Detect language... and hope the lexer name is the same as the lingust name.
-			// GitHub Markdown uses linguist: https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
-			code := strings.Join(ls, "\n") + "\n"
-			if lexer := lexers.Analyse(code); lexer != nil {
+			// Detect language... and hope the lexer name is the same as the lingust
+			// name.  GitHub Markdown uses linguist:
+			// https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
+			codeBlock := strings.Join(ls, "\n") + "\n"
+
+			// It turns out using alecthomas/chroma uses a far-too-basic heuristic for
+			// detecting Go, and so we add a more comprehensive heuristic here
+			// instead.  Given that we're mostly going to find Go code here, we lean
+			// towards detecting it over not.
+			//
+			// We then defer to the generic analyzer following.
+			if strings.Contains(codeBlock, "package ") ||
+				strings.Contains(codeBlock, "func(") ||
+				strings.Contains(codeBlock, " := ") ||
+				strings.Contains(codeBlock, "fmt.") ||
+				strings.Contains(codeBlock, "var ") {
+				push("```go")
+			} else if lexer := lexers.Analyse(codeBlock); lexer != nil {
 				push("```" + strings.ToLower(lexer.Config().Name))
 			} else {
 				push("```")
 			}
+
 			nl()
 			push(ls...)
 			push("```")
