@@ -4,7 +4,7 @@
 # Install
 
 ```shell
-go install "go.jpap.org/godoc-readme-gen"
+go install go.jpap.org/godoc-readme-gen
 ```
 # Overview
 
@@ -62,33 +62,35 @@ godoc-readme-gen -template path/to/readme.template
 ## Template Variables
 The following variables are available in custom templates:
 
-Name: Package name.
+`.Name` Package name.
 
 `.Title` The -title flag value, or package name if not provided.
 
-`.Doc` Package-level documentation of your package.
+`.Doc` Package-level documentation.
 
 `.Synopsis` The first sentence from the .Doc variable.
 
-`.Import` The import path of your package.
+`.ImportPath` Package import path.
 
 `.RepoPath` The import path without the first path component. For example,
-the import github.com/golang/go is represented as "golang/go".
+the import github.com/golang/go is represented as "golang/go".  This is
+typically the path within the repo of the package.
 
 `.Bugs` A []string of all bugs as per godoc.
 
-`.Command` True if a command.
+`.Commands` A []string of import paths of all main packages.  In addition to
+the directory provided to the tool, we also check cmd/* directories for
+additional main packages.
 
-`.Library` True if not a command.
+`.Library` True if the package is not a main package.
 
 `.Today` The current date in YYYY.MM.DD format.
 
-`.Travis` True if there is a `.travis.yml` file in the same directory as your
-package.
+`.Travis` True if there is a `.travis.yml` file in the package directory.
 
-`.Example` a map of Example with all examples from `*_test.go` files. These
-can be used to include selective examples into the README.  The Example{}
-struct has these fields:
+`.Examples` a map of Example with all examples from `*_test.go` files. These
+can be used to include selective examples into the README.  The Example
+struct has the following fields:
 
 ```
 .Name    Name of the example

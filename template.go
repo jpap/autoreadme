@@ -5,20 +5,25 @@
 package main
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 )
 
 var templateString = `
 # {{.Title}}
-{{- if .Library}} [![GoDoc](https://pkg.go.dev/badge/{{.Import}}.svg)](https://pkg.go.dev/{{.Import}}){{end}}
+{{- if .Library}} [![GoDoc](https://pkg.go.dev/badge/{{.ImportPath}}.svg)](https://pkg.go.dev/{{.ImportPath}}){{end}}
 {{- if .Travis}} [![Build Status](https://travis-ci.org/{{.RepoPath}}.png?branch=master)](https://travis-ci.org/{{.RepoPath}}){{end}}
 
-{{if .Command -}}
+{{if .Commands -}}
 # Install
 
 $CODEBLOCKshell
-go install "{{.Import}}"
+{{range $cmdPath := .Commands -}}
+go install {{$cmdPath}}
+{{end -}}
 $CODEBLOCK
 {{end -}}
 
@@ -26,7 +31,7 @@ $CODEBLOCK
 # Import
 
 $CODEBLOCKgo
-import "{{.Import}}"
+import "{{.ImportPath}}"
 $CODEBLOCK
 {{end -}}
 
@@ -41,10 +46,43 @@ $CODEBLOCK
 {{end}}
 `
 
-var tmpl *template.Template
+var builtinTemplate *template.Template
 
 func init() {
 	// Backticks aren't allowed in a string literal...
 	templateString = strings.ReplaceAll(templateString, "$CODEBLOCK", "```")
-	tmpl = template.Must(template.New("").Parse(templateString))
+	builtinTemplate = template.Must(template.New("").Parse(templateString))
+}
+
+// only read and parse specified template once if -template and -r specified
+var singletonTemplate *template.Template
+
+func getTemplate(dir string) (*template.Template, error) {
+	if *Template != "" {
+		if singletonTemplate != nil {
+			return singletonTemplate, nil
+		}
+		bs, err := ioutil.ReadFile(*Template)
+		if err != nil {
+			return nil, err
+		}
+		singletonTemplate, err = template.New("").Parse(string(bs))
+		if err != nil {
+			return nil, err
+		}
+		return singletonTemplate, nil
+	}
+
+	bs, err := ioutil.ReadFile(filepath.Join(dir, ".README.template.md"))
+	//local template file found, prefer
+	if err == nil {
+		return template.New("").Parse(string(bs))
+	}
+	//the file was found but something else happened
+	if !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	//the file was not found and no template specified, so use default
+	return builtinTemplate, nil
 }
