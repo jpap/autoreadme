@@ -86,8 +86,9 @@
 //
 // Examples
 //
-// Create a README.md for the package in directory a/b/c:
-//  godoc-readme-gen a/b/c
+// Create a README.md for the package in directory a/b/c, with `.Title` template
+// variable set to "A Great Package":
+//  godoc-readme-gen -title "A Great Package" a/b/c
 //
 // Overwrite the README.md in the current directory:
 //  godoc-readme-gen -f
