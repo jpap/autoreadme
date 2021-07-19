@@ -1,3 +1,5 @@
+<!-- DO NOT EDIT. -->
+<!-- Automatically generated with https://go.jpap.org/godoc-readme-gen -->
 
 # GoDoc README Markdown Generator
 
@@ -8,9 +10,9 @@ go install go.jpap.org/godoc-readme-gen
 ```
 # Overview
 
-Automatically generate a README.md for your Go project.
+Automatically generate a Markdown README for your Go project.
 
-This tool creates a github-formatted README.md using the same format as
+This tool creates a GitHub-flavored README.md using the same format as
 godoc.  It includes the package summary and generates badges for pkg.go.dev
 and travis-ci.
 

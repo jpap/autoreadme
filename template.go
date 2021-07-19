@@ -12,7 +12,9 @@ import (
 	"text/template"
 )
 
-var templateString = `
+var templateString = `<!-- DO NOT EDIT. -->
+<!-- Automatically generated with https://go.jpap.org/godoc-readme-gen -->
+
 # {{.Title}}
 {{- if .Library}} [![GoDoc](https://pkg.go.dev/badge/{{.ImportPath}}.svg)](https://pkg.go.dev/{{.ImportPath}}){{end}}
 {{- if .Travis}} [![Build Status](https://travis-ci.org/{{.RepoPath}}.png?branch=master)](https://travis-ci.org/{{.RepoPath}}){{end}}

@@ -2,9 +2,9 @@
 // Copyright 2021 John Papandriopoulos.
 // Use of this code is governed by a BSD-License found in the LICENSE file.
 
-// Automatically generate a README.md for your Go project.
+// Automatically generate a Markdown README for your Go project.
 //
-// This tool creates a github-formatted README.md using the same format as
+// This tool creates a GitHub-flavored README.md using the same format as
 // godoc.  It includes the package summary and generates badges for pkg.go.dev
 // and travis-ci.
 //
