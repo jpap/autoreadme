@@ -72,16 +72,29 @@
 // running `go generate ./...` from the top-level directory.
 //
 // We recommend placing your high-level godoc comments in a separate project
-// file, for example `00doc.go` so that it appears at the top of a sorted file
-// listing, where you might then place your `//go:generate` line beneath the
-// `package` declaration like so:
+// file `ϟdocϟ.go` and a `//go:generate` line beneath the `package` declaration
+// as follows:
 //
-//   // Package demo shows how you might structure a 00doc.go file.
+//   // Package demo shows how you might structure a "ϟdocϟ.go" file.
 //   package demo // import "corp.example.com/demo"
 //
-//   // To install: `go install go.jpap.org/godoc-readme-gen`
-//   //
 //   //go:generate godoc-readme-gen -f -title "Demo Usage of godoc-read-me-gen"
+//   //  To install: `go install go.jpap.org/godoc-readme-gen`
+//
+// Naming this file with the given Unicode "ϟ" character ensures `go generate`
+// generates your README **last**, because it processes files in sorted order.
+// This is important because `godoc-readme-gen` requires your Go project to
+// build without error (so it can parse the source code).  If other generators
+// have not yet run, or require regeneration (e.g. out-of-date `stringer`
+// files), your source code might not "compile" and `godoc-readme-gen` will
+// fail, stopping `go generate` from running the other generators.
+//
+// Unfortunately Go source filenames are restricted to being ASCII or Unicode
+// letters, and limited to ASCII punctuation when using modules.  The allowed
+// punctuation characters "compare before" all of the ASCII letters, so we are
+// then forced to use a Unicode letter that always "compares after" all of the
+// ASCII letters.  We choose the ancient Greek letter koppa "ϟ" for this
+// purpose, because it "compares after" all Greek characters too!
 //
 //
 // Examples
@@ -139,6 +152,5 @@
 //
 package main
 
-// To install: `go install go.jpap.org/godoc-readme-gen`
-//
 //go:generate godoc-readme-gen -f -title "GoDoc README Markdown Generator"
+//   To install: `go install go.jpap.org/godoc-readme-gen`
